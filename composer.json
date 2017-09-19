@@ -1,0 +1,23 @@
+{
+    "name": "kenjdavidson/oauth-yahoofantasysports",
+    "description": "Provide implementation for Yahoo Fantasy Sports OAuth2",
+    "authors": [
+        {
+            "name": "kendavidson",
+            "email": "ken.j.davidson@live.ca"
+        }
+    ],
+    "require": {
+        "league/oauth2-client": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kenjdavidson\\OAuth\\YahooFantasy\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kenjdavidson\\OAuth\\YahooFantasy\\Tests\\": "tests/"
+        }
+    }
+}
