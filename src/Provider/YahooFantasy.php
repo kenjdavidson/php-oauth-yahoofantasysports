@@ -1,10 +1,13 @@
 <?php
 
-namespace Kenjdavidson\OAuth\YahooFantasy\Provider;
+namespace Kenjdavidson\OAuth2\YahooFantasySports\Provider;
 
+use Kenjdavidson\OAuth2\YahooFantasySports\Provider\UserResource;
 use League\OAuth2\Client\Provider\AbstractProvider;
-use Psr\Http\Message\ResponseInterface;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
+use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * YahooFantasySportsProvider implements Yahoo Fantasy Sports specific details
@@ -16,6 +19,32 @@ use League\OAuth2\Client\Token\AccessToken;
 class YahooFantasy extends AbstractProvider {       
     
     /**
+     * Enables `Bearer` header authorization for providers.
+     */
+    use BearerAuthorizationTrait;
+    
+    /**
+     * Yahoo OAuth returns user Id information in the xoath_yahoo_guid
+     * field of the Access Token.  This isn't really used for most of
+     * the request methods, instead use ;use_login=1
+     */
+    const ACCESS_TOKEN_RESOURCE_OWNER_ID = 'xoauth_yahoo_guid';
+
+    /**
+     * Implement a new YahooFantasy provider.  The $options array should include
+     * the:
+     * clientId     => consumerKey
+     * clientSecret => consumerSecret
+     * redirectUrl  => 'none'
+     * 
+     * @param array $options
+     * @param array $collaborators
+     */
+    public function __construct(array $options = array(), array $collaborators = array()) {
+        parent::__construct($options, $collaborators);
+    }
+    
+    /**
      * Checks a provider response for errors.
      *
      * @throws IdentityProviderException
@@ -25,6 +54,16 @@ class YahooFantasy extends AbstractProvider {
      */
     protected function checkResponse(ResponseInterface $response, $data) {
         
+        if (!empty($data['error'])) {
+            $code  = 0;
+            $error = $data['error'];
+            
+            if (is_array($error)) {
+                $code  = -1;
+                $error = $error['description'];
+            }
+            throw new IdentityProviderException($error, $code, $data);
+        }        
     }
 
     /**
@@ -36,7 +75,8 @@ class YahooFantasy extends AbstractProvider {
      * @return ResourceOwnerInterface
      */
     protected function createResourceOwner(array $response, AccessToken $token) {
-        
+        $user = new UserResource($response);
+        return $user;
     }
 
     /**
@@ -45,10 +85,10 @@ class YahooFantasy extends AbstractProvider {
      * This should only be the scopes that are required to request the details
      * of the resource owner, rather than all the available scopes.
      *
-     * @return array
+     * @return array the fantasy sports read/write scope
      */
     protected function getDefaultScopes() {
-        
+        return array('fspt-w');
     }
 
     /**
@@ -60,7 +100,7 @@ class YahooFantasy extends AbstractProvider {
      * @return string
      */
     public function getBaseAccessTokenUrl(array $params) {
-        
+        return 'https://api.login.yahoo.com/oauth2/get_token';
     }
 
     /**
@@ -71,17 +111,28 @@ class YahooFantasy extends AbstractProvider {
      * @return string
      */
     public function getBaseAuthorizationUrl() {
-        
+        return 'https://api.login.yahoo.com/oauth2/request_auth';
     }
 
     /**
-     * Returns the URL for requesting the resource owner's details.
+     * Returns the base URL for Collection resources.
+     * 
+     * @return string
+     */
+    public function getBaseResourceUrl() {
+        return 'https://fantasysports.yahooapis.com/fantasy/v2';
+    }
+    
+    /**
+     * Returns the URL for requesting the resource owner's details.  In this case
+     * the users Social account is returned as JSON.  
      *
      * @param AccessToken $token
      * @return string
      */
     public function getResourceOwnerDetailsUrl(AccessToken $token) {
-        
+        $guid = $token->getResourceOwnerId();    
+        return 'https://social.yahooapis.com/v1/user/'.$guid.'/profile?format=json';
     }
 
 }
