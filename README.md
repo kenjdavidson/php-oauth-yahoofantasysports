@@ -8,7 +8,7 @@ To get the project:
 
 1) clone https://github.com/kenjdavidson/oauth-yahoofantasysports.git
 2) install composer (https://getcomposer.org/doc/00-intro.md)
-3)
+3) go
 
 ### Prerequisites
 
