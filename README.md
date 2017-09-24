@@ -22,10 +22,14 @@ Examples and Tests (todo) are available for a number of resources.
 
 ### Examples
 
-Explain what these tests test and why
+Examples provide page snippets showing how the provider and services are used.
 
 ```
-Give an example
+/index.php - Displays the link to request OAuth2 or the token itself.
+/config.php - Requires creation, follow structure in index.php
+/games.php - Displays games JSON
+/leagues.php - Displays leagues JSON
+/teams.php - Displays teams JSON
 ```
 
 ### Tests
