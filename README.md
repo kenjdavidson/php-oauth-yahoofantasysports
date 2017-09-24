@@ -46,5 +46,5 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* League/oauth2-client
-* Hayageek/oauth2-yahoo
+* League/oauth2-client (https://github.com/thephpleague/oauth2-client)
+* Hayageek/oauth2-yahoo (https://github.com/hayageek/oauth2-yahoo)
