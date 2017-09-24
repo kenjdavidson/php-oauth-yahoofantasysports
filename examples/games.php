@@ -28,7 +28,7 @@ try {
             $_SESSION['token'] = serialize($refreshed);          
         });
     $games = $yahoo->getUserGames();
-    echo json_encode($games, JSON_PRETTY_PRINT);
+    echo '<pre>' . json_encode($games, JSON_PRETTY_PRINT) . '</pre>';
     
 } catch (Exception $ex) {
     exit($ex->getMessage());

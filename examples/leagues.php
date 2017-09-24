@@ -28,7 +28,7 @@ try {
             $_SESSION['token'] = serialize($refreshed);          
         });
     $leagues = $yahoo->getUserLeagues();
-    echo json_encode($leagues, JSON_PRETTY_PRINT);
+    echo '<pre>' . json_encode($leagues, JSON_PRETTY_PRINT) . '</pre>';
     //echo json_encode($leagues[0]->getStandings(), JSON_PRETTY_PRINT);
     
 } catch (Exception $ex) {
