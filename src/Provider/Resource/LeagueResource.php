@@ -57,6 +57,7 @@ class LeagueResource extends YahooFantasyResource {
     public function getEndDate() { return $this->get('end_date'); }    
     public function getSeason() { return $this->get('season'); }    
     public function getGameCode() { return $this->get('game_code'); }
+    public function getStandings() { return $this->get('standings')['teams']['team']; }
 
 }
  

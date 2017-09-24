@@ -109,14 +109,8 @@ class YahooFantasyService {
                 $url,
                 $this->token);
         $response = $this->provider->getParsedResponse($request);        
-        $xml = new \SimpleXMLElement($response);
-        
-        foreach($xml->getDocNamespaces() as $strPrefix => $strNamespace) {
-            $strPrefix = (strlen($strPrefix) == 0) ? "y" : $strPrefix; 
-            $xml->registerXPathNamespace($strPrefix,$strNamespace);            
-        }
-        
-        return $xml;
+        $xml = new \SimpleXMLElement($response);               
+        return YahooFantasyService::addXmlNamespace($xml);
     }
     
     /**
@@ -129,7 +123,7 @@ class YahooFantasyService {
      *      otherwise its a string of the result.
      * @deprecated YQL seem to not work due to security issues.
      */
-    public function makeYqlRequest($method, $url, $q, $json) {
+    public function makeYqlRequest($method, $url, $q, $json = false) {
         $jq = ($json) ? '&format=json' : '';
         $request = $url . $q . $jq;
         echo $request;
@@ -138,7 +132,27 @@ class YahooFantasyService {
                 $request,
                 $this->token);
         
-        return $this->provider->getParsedResponse($request);
+        $response = $this->provider->getParsedResponse($request);
+        
+        if ($json) {
+            return json_encode($response);
+        } else {
+            $xml = new \SimpleXMLElement($response);
+            return YahooFantasyService::addXmlNamespace($xml);
+        }
+    }
+    
+    /**
+     * Helper method to add namespaces to the SimpleXMLElement Object
+     * provided.
+     * @param SimpleXmlElement $xml
+     */
+    private static function addXmlNamespace($xml) {
+        foreach($xml->getDocNamespaces() as $strPrefix => $strNamespace) {
+            $strPrefix = (strlen($strPrefix) == 0) ? "y" : $strPrefix; 
+            $xml->registerXPathNamespace($strPrefix,$strNamespace);            
+        }
+        return $xml;
     }
     
     /**

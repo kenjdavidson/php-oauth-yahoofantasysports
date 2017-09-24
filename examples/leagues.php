@@ -29,6 +29,7 @@ try {
         });
     $leagues = $yahoo->getUserLeagues();
     echo json_encode($leagues, JSON_PRETTY_PRINT);
+    //echo json_encode($leagues[0]->getStandings(), JSON_PRETTY_PRINT);
     
 } catch (Exception $ex) {
     exit($ex->getMessage());
