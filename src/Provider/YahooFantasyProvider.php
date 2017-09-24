@@ -2,7 +2,7 @@
 
 namespace Kenjdavidson\OAuth2\YahooFantasySports\Provider;
 
-use Kenjdavidson\OAuth2\YahooFantasySports\Provider\UserResource;
+use Kenjdavidson\OAuth2\YahooFantasySports\Provider\Resource\UserResource;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
@@ -16,7 +16,7 @@ use Psr\Http\Message\ResponseInterface;
  *
  * @author kendavidson
  */
-class YahooFantasy extends AbstractProvider {       
+class YahooFantasyProvider extends AbstractProvider {       
     
     /**
      * Enables `Bearer` header authorization for providers.
@@ -135,4 +135,15 @@ class YahooFantasy extends AbstractProvider {
         return 'https://social.yahooapis.com/v1/user/'.$guid.'/profile?format=json';
     }
 
+    /**
+     * Used to make a full Resource request through the YahooFatnasy provider.  By 
+     * passing in a FantasyResource Class object, the YahooFantasy provider
+     * makes an authenticated request and returns the resource based on the
+     * request provided.
+     * 
+     * @param type $resource
+     */
+    public function getResource($resource) {
+        
+    }
 }

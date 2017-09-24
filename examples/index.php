@@ -1,35 +1,15 @@
 <?php
+
+use League\OAuth2\Client\Token\AccessToken;
+
 /**
  * index.php
  * 
  * The index.php page provides an example for requesting and refreshing an
- * access token using the YahooFantasy provider.  In order to use this example
- * a config.php file should be placed in the same directory (not included in
- * the git).  This file should return an array that contains:
- * 
- * [
- *  'consumer'  => [
- *      'clientId'      => 'consumer_key',
- *      'clientSecret   => 'consumer_secret',
- *      'redirectUri'   => 'oob'
- *  ],
- *  'token'     => serialize(AuthToken)
- * ]
+ * access token using the YahooFantasy provider.  
  */
 
-require __DIR__ . '/../vendor/autoload.php';
-
-use Kenjdavidson\OAuth2\YahooFantasySports\Provider\YahooFantasy;
-use League\OAuth2\Client\Token\AccessToken;
-
-// Configuration - see comments
-$config = require __DIR__ . '/config.php';
-
-/* @var YahooFantasy $provider */
-$provider = new YahooFantasy($config['consumer']);
-
-// Start the PHP session
-session_start();
+$provider = require __DIR__ . '/provider.php';
 
 // If there was an error in the GET parameters then we want to exit displaying
 // that there was an error.
@@ -65,24 +45,12 @@ if (!empty($_GET['error'])) {
             throw new Exception('Neither the code or config was provided.');
         }    
         
+        $SESSION['token'] = serialize($token);
         displayUser($provider, $token);
         displayAccessToken($token);
     } catch (Exception $ex) {
-        displayError($ex);
+        exit($ex->getMessage());
     }   
-}
-
-/**
- * Displays an Exception HTML Block.
- * @param Exception $ex
- */
-function displayError($ex) {
-    ?>
-    <div>
-        <h1>YahooFantasy Provider Error</h1>
-        <p><?php echo $ex->getMessage(); ?>
-    </div>
-    <?php 
 }
 
 /**
@@ -96,12 +64,30 @@ function displayAuthorizationUrl($authUrl) {
     <div>
         <h1>Yahoo Fantasy Provider</h1>
         <p>
+            Create a config.php file in the examples folder with the following
+            format:
+        <pre>
+$consumer = array(
+    'clientId'      => '{CLIENT_CODE}',
+    'clientSecret'  => '{CLIENT_SECRET}',
+    'redirectUri'   => '{CALLBACK | oob}'
+);
+
+return array(
+    'consumer'  => $consumer,
+    'token' => ''
+); 
+        </pre>
+        </p>
+        <p>
             Follow the link provided to continue signing into Yahoo!  If the 
             redirect URL you provided is available, this page will update accordingly.
             If you used 'oob' as a callback redirect URL then you will need to 
-            update the browser url, once complete to 
-            <strong>http://localhost/examples/index.php?code=XXXXXX</strong> where
-            XXXXXX is the code returned after login.
+            update the browser url, once complete to:            
+            <pre>
+http://localhost/examples/index.php?code=XXXXXX
+            </pre>
+            where XXXXXX is the code returned after login.
         </p>
     </div>
     <div>
@@ -122,7 +108,7 @@ function displayUser($provider, $token) {
 <div>
     <h1>Yahoo! User <?php echo $user->getNickname(); ?></h1>
     <p>
-        <strong>User:</strong> <?php print_r($user); ?>
+        <strong>User:</strong> <?php echo json_encode($user); ?>
     </p>
 </div>
     <?php
@@ -156,8 +142,8 @@ function displayAccessToken($token) {
             The Access Token has not expired, or was refreshed successfully.  Here
             is a list of available resources.
             <ul>
-                <li>Games</li>
-                <li>Leagues</li>
+                <li><a href="games.php">Games</a></li>
+                <li><a href="leagues.php">Leagues</a></li>
                 <li>Teams</li>
             </ul>
         </p>
