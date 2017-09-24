@@ -6,8 +6,8 @@ Provides League/oauth2-client provider and resources to communicate specifically
 
 To get the project:
 
-1) 
-2)
+1) clone https://github.com/kenjdavidson/oauth-yahoofantasysports.git
+2) install composer (https://getcomposer.org/doc/00-intro.md)
 3)
 
 ### Prerequisites
