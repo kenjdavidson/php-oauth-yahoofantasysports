@@ -125,14 +125,17 @@ class YahooFantasyProvider extends AbstractProvider {
     
     /**
      * Returns the URL for requesting the resource owner's details.  In this case
-     * the users Social account is returned as JSON.  
+     * the users Social account is returned as JSON.  For more information
+     * or updating the user profile request 
+     * 
+     * @link https://developer.yahoo.com/social/rest_api_guide/social_dir_api.html
      *
      * @param AccessToken $token
      * @return string
      */
     public function getResourceOwnerDetailsUrl(AccessToken $token) {
-        $guid = $token->getResourceOwnerId();    
-        return 'https://social.yahooapis.com/v1/user/'.$guid.'/profile?format=json';
+        $guid = $token->getResourceOwnerId();            
+        return 'https://social.yahooapis.com/v1/user/'.$guid.'/profile';
     }
 
     /**
