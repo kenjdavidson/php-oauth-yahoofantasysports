@@ -45,9 +45,10 @@ if (!empty($_GET['error'])) {
             throw new Exception('Neither the code or config was provided.');
         }    
         
-        $SESSION['token'] = serialize($token);
-        displayUser($provider, $token);
+        $_SESSION['token'] = serialize($token);
         displayAccessToken($token);
+        displayUser($provider, $token);
+        
     } catch (Exception $ex) {
         exit($ex->getMessage());
     }   
@@ -102,13 +103,13 @@ http://localhost/examples/index.php?code=XXXXXX
  * @param YahooFantasy $provider
  * @param AccessToken $token
  */
-function displayUser($provider, $token) {
+function displayUser($provider, $token) {    
     $user = $provider->getResourceOwner($token);
     ?>
 <div>
     <h1>Yahoo! User <?php echo $user->getNickname(); ?></h1>
     <p>
-        <strong>User:</strong> <?php echo json_encode($user); ?>
+        <strong>User:</strong> <pre><?php echo json_encode($user, JSON_PRETTY_PRINT); ?></pre>
     </p>
 </div>
     <?php
@@ -132,7 +133,7 @@ function displayAccessToken($token) {
         </p>
         <?php endif; ?>
         <p>
-            <strong>Token (json):</strong> <?php echo json_encode($token); ?>
+            <strong>Token (json):</strong> <?php echo json_encode($token); ?>        
         </p>  
         <p>
             <strong>Refresh Token:</strong> <?php echo $token->getRefreshToken(); ?>

@@ -1,6 +1,7 @@
 <?php
 
 use Kenjdavidson\OAuth2\YahooFantasySports\Provider\Service\YahooFantasyService;
+use League\OAuth2\Client\Token\AccessToken;
 
 /**
  * game.php
@@ -14,24 +15,46 @@ use Kenjdavidson\OAuth2\YahooFantasySports\Provider\Service\YahooFantasyService;
 /* @var YahooFantasyProvider $provider */
 $provider = require __DIR__ . '/provider.php';
 
-if (!empty($_SESSION['token'])) {
+if (!empty($_SESSION['token'])) {  
     $token = unserialize($_SESSION['token']);
-}
-
-if (empty($token)) {
-    header('Location: /index.php');
-    exit;
+} else {
+    ?>
+    <h1>No Session Token Found</h1>
+    <p>
+        No session token was found, you'll need to go back to the
+        <a href="/index.php">index.php</a> page and attempt to refresh the token.
+    </p>
+    <?php
 }
 
 try {
+    ?>
+    <h1>Yahoo! User Games</h1>
+    <p>
+        Provider and Access Token were created successfully.  Attempting to 
+        lookup of user games. To modify the standard request, you can 
+        add ?seasons=YYYY&game_key=### to the URL:
+        <ul>
+            <li><a href="games.php">Current Games</a></li>
+            <li><a href="games.php?seasons=2017">2017 Games</a></li>
+            <li><a href="games.php?seasons=2016">2016 Games</a></li>
+        </ul>
+    </p>
+    <?php
     $yahoo = new YahooFantasyService($provider, $token, function($refreshed) {
             $_SESSION['token'] = serialize($refreshed);          
         });
-    $games = $yahoo->getUserGames();
+        
+    $seasons = filter_input(INPUT_GET, 'seasons');
+    $games = $yahoo->getUserGames($seasons);
     echo '<pre>' . json_encode($games, JSON_PRETTY_PRINT) . '</pre>';
     
 } catch (Exception $ex) {
-    exit($ex->getMessage());
+    ?>
+    <p>
+        Games could not be looked up. <?php echo $ex->getMessage(); ?>
+    </p>
+    <?php
 } finally {
     $token = unserialize($_SESSION['token']);   
 }

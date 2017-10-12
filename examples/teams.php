@@ -16,18 +16,36 @@ $provider = require __DIR__ . '/provider.php';
 
 if (!empty($_SESSION['token'])) {
     $token = unserialize($_SESSION['token']);
-}
-
-if (empty($token)) {
-    header('Location: /index.php');
-    exit;
+} else {
+    ?>
+    <h1>No Session Token Found</h1>
+    <p>
+        No session token was found, you'll need to go back to the
+        <a href="/index.php">index.php</a> page and attempt to refresh the token.
+    </p>
+    <?php
 }
 
 try {
+    ?>
+    <h1>Yahoo! User Teams</h1>
+    <p>
+        Provider and Access Token were created successfully.  Attempting to 
+        lookup of user games.  To modify the standard request, you can 
+        add ?seasons=YYYY&game_key=### to the URL:
+        <ul>
+            <li><a href="teams.php">Current Teams</a></li>
+            <li><a href="teams.php?seasons=2017">2017 Teams</a></li>
+            <li><a href="teams.php?seasons=2016">2016 Teams</a></li>
+        </ul>
+    </p>
+    <?php     
     $yahoo = new YahooFantasyService($provider, $token, function($refreshed) {
             $_SESSION['token'] = serialize($refreshed);          
         });
-    $teams = $yahoo->getUserTeams();
+    
+    $seasons = filter_input(INPUT_GET, 'seasons');
+    $teams = $yahoo->getUserTeams($seasons);
     echo '<pre>' . json_encode($teams, JSON_PRETTY_PRINT) . '</pre>';
     
 } catch (Exception $ex) {

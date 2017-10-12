@@ -15,17 +15,41 @@ use League\OAuth2\Client\Token\AccessToken;
  * This is annoying, but the YQL service doesn't like the authorized request
  * and will not respond.
  * 
+ * Regular API:
+ * 
  * Games:
  * @link https://developer.yahoo.com/fantasysports/guide/#game-resource
  * @link https://developer.yahoo.com/fantasysports/guide/#games-collection
  * 
+ * The games collection has the available sub-resource: leagues
+ * 
  * Leagues:
  * @link https://developer.yahoo.com/fantasysports/guide/#leagues-collection
  * @link https://developer.yahoo.com/fantasysports/guide/#league-resource
+ * 
+ * The leagues collection has the available sub-resources: settings, standings,
+ * scoreboard and teams
  *
  * Teams:
  * @link https://developer.yahoo.com/fantasysports/guide/#teams-collection
  * @link https://developer.yahoo.com/fantasysports/guide/#team-resource
+ * 
+ * The teams collection has the available sub-resources: matchups;weeks=, 
+ * stats;type=[season|date], roster
+ * 
+ * Roster:
+ * @link https://developer.yahoo.com/fantasysports/guide/#roster-collection
+ * @link https://developer.yahoo.com/fantasysports/guide/#roster-resource
+ * 
+ * The roster collection has the available sub-resources: player
+ * 
+ * Player:
+ * @link https://developer.yahoo.com/fantasysports/guide/#roster-collection
+ * @link https://developer.yahoo.com/fantasysports/guide/#roster-resource
+ * 
+ * The player collection has the available sub-resourceS: stats
+ * 
+ *  
  * 
  * @author Kenneth Davidson
  */
@@ -34,20 +58,19 @@ class YahooFantasyService {
     // API base URI
     const API_BASE = 'https://fantasysports.yahooapis.com/fantasy/v2';
     
-    // Game related paths
-    const GAME_RESOURCE = '/game';
-    const GAME_COLLECTION = '/games';
-    const USER_GAMES = '/users;use_login=1/games';
+    // Collection URIs for specific request types
+    const COLLECTION_URI = array(
+        'games'      =>  '/users%s/games;game_keys=%s',
+        'leagues'    =>  '/users%s/games/leagues;league_keys=%s%s',
+        'teams'      =>  '/users%s/games/leagues/teams;team_keys=%s%s'        
+    );
     
-    // League related paths
-    const LEAGUE_RESOURCE = '/league';
-    const LEAGUE_COLLECTION = '/leagues';
-    const USER_LEAGUES = '/users;use_login=1/games/leagues/standings';
-    
-    // League related paths
-    const TEAM_RESOURCE = '/team';
-    const TEAM_COLLECTION = '/teams';
-    const USER_TEAMS = '/users;use_login=1/games/leagues/teams/standings'; 
+    // User Data URIs for specific request types
+    const USERS_URI = array(
+        'games'      =>  '/users;use_login=1/games%s',
+        'leagues'    =>  '/users;use_login=1/games%s/leagues/standings',
+        'teams'      =>  '/users;use_login=1/games%s/leagues/teams/standings'         
+    );   
     
     /**
      * AbstractProvider used to make requests
@@ -171,24 +194,29 @@ class YahooFantasyService {
     }
     
     /**
+     * Makes a user resource request by season
+     * @param String $season
+     */
+    private function getUserResourceBySeason($resource, $seasons = null) {
+        $theSeason = ';seasons=' . (isset($seasons) ? $seasons : getDate()['year']);
+        $collection = sprintf(YahooFantasyService::USERS_URI[$resource], $theSeason);
+        $url = YahooFantasyService::API_BASE . $collection;  
+        return $this->makeApiRequest(YahooFantasyProvider::METHOD_GET, $url);        
+    }
+    
+    /**
      * Creates and makes a request to the Games Collection, getting all the
-     * games in which the user is registered. 
+     * games in which the user is registered.  The user games can be filtered
+     * by season, which should be a comma separated list of years .  This is a
+     * shortcut for the full getGames method.
      *      
-     * @param boolean $rawXml   flag noting whether the request should return     *                          an array of SimpleXMLElements or Resource
-     *                          Objects
-     * 
+     * @param $seasons the season(s) in which to look for games collection
      * @return mixed   
      */
-    public function getUserGames($rawXml = false) {
-        $url = YahooFantasyService::API_BASE . YahooFantasyService::USER_GAMES;        
-        $response = $this->makeApiRequest(YahooFantasyProvider::METHOD_GET, $url);
-        
-        if ($rawXml) {
-            return $response;
-        }
-        
+    public function getUserGames($seasons = null) {
+        $resource = $this->getUserResourceBySeason('games', $seasons);
         $games = array();
-        foreach($response->xpath('//y:game') as $game) {
+        foreach($resource->xpath('//y:game') as $game) {
             $games[] = new GameResource(YahooFantasyService::jsonToArray($game));
         }   
         return $games;
@@ -198,22 +226,13 @@ class YahooFantasyService {
      * Creates and makes a request to the Leagues Collection, getting all the
      * leagues in which the user is registered.
      * 
-     * @param boolean $rawXml   flag noting whether the request should return
-     *                          an array of SimpleXMLElements or Resource
-     *                          Objects
-     * 
+     * @param String $seasons the season(s) in which to look for games collection
      * @return mixed        
      */
-    public function getUserLeagues($rawXml = false) {
-        $url = YahooFantasyService::API_BASE . YahooFantasyService::USER_LEAGUES;        
-        $response = $this->makeApiRequest(YahooFantasyProvider::METHOD_GET, $url);
-        
-        if ($rawXml) {
-            return $response;
-        } 
-        
+    public function getUserLeagues($seasons = null) {
+        $resource = $this->getUserResourceBySeason('leagues', $seasons);
         $leagues = array();
-        foreach($response->xpath('//y:league') as $league) {
+        foreach($resource->xpath('//y:league') as $league) {
             $leagues[] = new LeagueResource(YahooFantasyService::jsonToArray($league));
         }
         return $leagues;
@@ -223,24 +242,13 @@ class YahooFantasyService {
      * Creates and makes a request to the Teams Collection, getting all the
      * teams in which the user is registered.
      * 
-     * @param boolean $rawXml   flag noting whether the request should return
-     *                          an array of SimpleXMLElements or Resource
-     *                          Objects
-     * 
+     * @param $seasons the season(s) in which to look for games collection
      * @return mixed  
-     * 
-     * @var $leagueR array
      */
-    public function getUserTeams($rawXml = false) {
-        $url = YahooFantasyService::API_BASE . YahooFantasyService::USER_TEAMS;        
-        $response = $this->makeApiRequest(YahooFantasyProvider::METHOD_GET, $url);
-        
-        if ($rawXml) {
-            return $response;
-        } 
-       
+    public function getUserTeams($seasons = null) {
+        $resource = $this->getUserResourceBySeason('teams', $seasons);
         $teams = array();
-        foreach($response->xpath('//y:team') as $xteam) {
+        foreach($resource->xpath('//y:team') as $xteam) {
             $teams[] = new TeamResource(YahooFantasyService::jsonToArray($xteam));            
         }
         return $teams;      

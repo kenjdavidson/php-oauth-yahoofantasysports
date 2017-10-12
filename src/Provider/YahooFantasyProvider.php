@@ -135,7 +135,7 @@ class YahooFantasyProvider extends AbstractProvider {
      */
     public function getResourceOwnerDetailsUrl(AccessToken $token) {
         $guid = $token->getResourceOwnerId();            
-        return 'https://social.yahooapis.com/v1/user/'.$guid.'/profile';
+        return 'https://social.yahooapis.com/v1/user/'.$guid.'/profile?format=json';
     }
 
     /**
