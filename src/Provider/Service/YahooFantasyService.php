@@ -122,17 +122,22 @@ class YahooFantasyService {
      * XPath will be used on the XML.
      * @param string $method
      * @param string $url
+     * @param boolean $json returns the XML converted to JSON
      * @return SimpleXMLElement
      * 
      * @link http://php.net/manual/en/simplexmlelement.xpath.php
      */
-    public function makeApiRequest($method, $url) {
+    public function makeApiRequest($method, $url, $json = false) {
         $request = $this->provider->getAuthenticatedRequest(
                 $method, 
                 $url,
                 $this->token);
         $response = $this->provider->getParsedResponse($request);        
-        $xml = new \SimpleXMLElement($response);               
+        $xml = new \SimpleXMLElement($response);  
+        
+        if ($json) {
+            return json_encode($xml);
+        }
         return YahooFantasyService::addXmlNamespace($xml);
     }
     
