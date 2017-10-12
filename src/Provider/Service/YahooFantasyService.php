@@ -196,7 +196,7 @@ class YahooFantasyService {
         if ($this->onRefresh && is_callable($this->onRefresh)) {
             call_user_func($this->onRefresh, $this->token);
         }
-    }
+    }   
     
     /**
      * Makes a user resource request by season
@@ -207,6 +207,13 @@ class YahooFantasyService {
         $collection = sprintf(YahooFantasyService::USERS_URI[$resource], $theSeason);
         $url = YahooFantasyService::API_BASE . $collection;  
         return $this->makeApiRequest(YahooFantasyProvider::METHOD_GET, $url);        
+    }
+    
+    /**
+     * Get user account method.
+     */
+    public function getUserAccount() {
+        return $this->provider->getResourceOwner($this->token);
     }
     
     /**
