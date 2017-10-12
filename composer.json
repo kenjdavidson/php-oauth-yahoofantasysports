@@ -1,7 +1,6 @@
 {
     "name": "kenjdavidson/oauth-yahoofantasysports",
     "description": "Provide OAuth2 providers and services for use with Yahoo! Fantasy Sports API.",
-    "version": "0.1.0",
     "authors": [
         {
             "name": "kendavidson",
