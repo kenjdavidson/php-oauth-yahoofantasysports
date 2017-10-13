@@ -57,7 +57,19 @@ class LeagueResource extends YahooFantasyResource {
     public function getEndDate() { return $this->get('end_date'); }    
     public function getSeason() { return $this->get('season'); }    
     public function getGameCode() { return $this->get('game_code'); }
-    public function getStandings() { return $this->get('standings')['teams']['team']; }
+    public function getStandings() { return $this->get('standings'); }
 
+    /**
+     * Gets the game key from league key.  The league key is in format 
+     * ###.l.#####; where the league key is the first three 
+     * digits, ###.
+     */
+    public function getLeagueKey() {
+        if (preg_match('/(\d+\.l\.\d+)\..*/', $this->get('team_key'), $matches) == 1) {
+            return $matches[1];
+        } else {
+            throw new Exception('Unable to parse team_key, league_key not found.');
+        }
+    }
 }
  

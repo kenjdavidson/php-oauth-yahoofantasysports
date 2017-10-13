@@ -44,12 +44,10 @@ use League\OAuth2\Client\Token\AccessToken;
  * The roster collection has the available sub-resources: player
  * 
  * Player:
- * @link https://developer.yahoo.com/fantasysports/guide/#roster-collection
- * @link https://developer.yahoo.com/fantasysports/guide/#roster-resource
+ * @link https://developer.yahoo.com/fantasysports/guide/#player-collection
+ * @link https://developer.yahoo.com/fantasysports/guide/#player-resource
  * 
- * The player collection has the available sub-resourceS: stats
- * 
- *  
+ * The player collection has the available sub-resourceS: stats 
  * 
  * @author Kenneth Davidson
  */
@@ -68,8 +66,8 @@ class YahooFantasyService {
     // User Data URIs for specific request types
     const USERS_URI = array(
         'games'      =>  '/users;use_login=1/games%s',
-        'leagues'    =>  '/users;use_login=1/games%s/leagues/standings',
-        'teams'      =>  '/users;use_login=1/games%s/leagues/teams/standings'         
+        'leagues'    =>  '/users;use_login=1/games%s/leagues;out=standings,scoreboard',
+        'teams'      =>  '/users;use_login=1/games%s/leagues/teams;out=standings,roster'         
     );   
     
     /**
@@ -86,7 +84,7 @@ class YahooFantasyService {
     
     /**
      * On Refresh callback.
-     * @var Callable
+     * @var Callable    function(AccessToken $token)
      */
     protected $onRefresh;
     
@@ -122,22 +120,24 @@ class YahooFantasyService {
      * XPath will be used on the XML.
      * @param string $method
      * @param string $url
-     * @param boolean $json returns the XML converted to JSON
-     * @return SimpleXMLElement
+     * @param boolean $json returns the JSON response
+     * @return Mixed    SimpleXMLElement or JSON Object
      * 
      * @link http://php.net/manual/en/simplexmlelement.xpath.php
      */
     public function makeApiRequest($method, $url, $json = false) {
+        $apiUrl = $url . ($json ? '?format=json' : '');
         $request = $this->provider->getAuthenticatedRequest(
                 $method, 
-                $url,
+                $apiUrl,
                 $this->token);
         $response = $this->provider->getParsedResponse($request);        
-        $xml = new \SimpleXMLElement($response);  
         
         if ($json) {
-            return json_encode($xml);
+            return json_encode($response);
         }
+        
+        $xml = new \SimpleXMLElement($response);  
         return YahooFantasyService::addXmlNamespace($xml);
     }
     
@@ -147,17 +147,14 @@ class YahooFantasyService {
      * @param string $url
      * @param string $q
      * @param boolean $json
-     * @return mixed if the response is JSON then the request is a Assoc array
-     *      otherwise its a string of the result.
+     * @return Mixed    SimpleXMLElement or JSON
      * @deprecated YQL seem to not work due to security issues.
      */
     public function makeYqlRequest($method, $url, $q, $json = false) {
-        $jq = ($json) ? '&format=json' : '';
-        $request = $url . $q . $jq;
-        echo $request;
+        $apiUrl = $url . $q . ($json ? '?format=json' : '');
         $request = $this->provider->getAuthenticatedRequest(
                 $method, 
-                $request,
+                $apiUrl,
                 $this->token);
         
         $response = $this->provider->getParsedResponse($request);
@@ -171,8 +168,9 @@ class YahooFantasyService {
     }
     
     /**
-     * Helper method to add namespaces to the SimpleXMLElement Object
-     * provided.
+     * Helper method to add name spaces to the SimpleXMLElement Object
+     * provided.  Name spaces are required in order to perform XPath lookups, 
+     * since Yahoo doesn't provide their own, we need to add the 'yf:' name space.
      * @param SimpleXmlElement $xml
      */
     private static function addXmlNamespace($xml) {
@@ -199,18 +197,24 @@ class YahooFantasyService {
     }   
     
     /**
-     * Makes a user resource request by season
-     * @param String $season
+     * Makes a user resource request by season.  The request is made based 
+     * on the resource and season.  Always defaults to the current season, which
+     * requires no filter criteria.
+     * @param String $resource
+     * @param String $seasons
+     * @return SimpleXMLElement
      */
     private function getUserResourceBySeason($resource, $seasons = null) {
-        $theSeason = ';seasons=' . (isset($seasons) ? $seasons : getDate()['year']);
+        $theSeason = ';seasons=' . (isset($seasons) ? $seasons : '');
         $collection = sprintf(YahooFantasyService::USERS_URI[$resource], $theSeason);
         $url = YahooFantasyService::API_BASE . $collection;  
         return $this->makeApiRequest(YahooFantasyProvider::METHOD_GET, $url);        
     }
     
     /**
-     * Get user account method.
+     * Get user account method.  Direct request to the AbstractProvider->getResourceOwner
+     * method.
+     * @return JSON 
      */
     public function getUserAccount() {
         return $this->provider->getResourceOwner($this->token);
@@ -223,7 +227,7 @@ class YahooFantasyService {
      * shortcut for the full getGames method.
      *      
      * @param $seasons the season(s) in which to look for games collection
-     * @return mixed   
+     * @return Array    of GameResource Objects   
      */
     public function getUserGames($seasons = null) {
         $resource = $this->getUserResourceBySeason('games', $seasons);
@@ -236,16 +240,26 @@ class YahooFantasyService {
     
     /**
      * Creates and makes a request to the Leagues Collection, getting all the
-     * leagues in which the user is registered.
+     * leagues in which the user is registered.  This method does some magic
+     * to convert the SimpleXMLElement arrays into regular object arrays (this
+     * ensures there are no array[@attribute] => 0 entries.
      * 
      * @param String $seasons the season(s) in which to look for games collection
-     * @return mixed        
+     * @return Array    of LeagueResource objects        
      */
     public function getUserLeagues($seasons = null) {
         $resource = $this->getUserResourceBySeason('leagues', $seasons);
+       
         $leagues = array();
-        foreach($resource->xpath('//y:league') as $league) {
-            $leagues[] = new LeagueResource(YahooFantasyService::jsonToArray($league));
+        foreach($resource->xpath('//y:league') as $leagueXml) {
+            YahooFantasyService::addXmlNamespace($leagueXml);
+            $standingsXml = $leagueXml->xpath('./y:standings/y:teams/y:team');
+            $scoreboardXml = $leagueXml->xpath('./y:scoreboard/y:matchups/y:matchup');
+            
+            $league = YahooFantasyService::jsonToArray($leagueXml);
+            $league['standings'] = YahooFantasyService::jsonToArray($standingsXml);
+            $league['scoreboard'] = YahoofantasyService::jsonToArray($scoreboardXml);
+            $leagues[] = new LeagueResource($league);
         }
         return $leagues;
     }     
@@ -255,13 +269,19 @@ class YahooFantasyService {
      * teams in which the user is registered.
      * 
      * @param $seasons the season(s) in which to look for games collection
-     * @return mixed  
+     * @return Array    of TeamResource objects  
      */
     public function getUserTeams($seasons = null) {
         $resource = $this->getUserResourceBySeason('teams', $seasons);
+        
         $teams = array();
-        foreach($resource->xpath('//y:team') as $xteam) {
-            $teams[] = new TeamResource(YahooFantasyService::jsonToArray($xteam));            
+        foreach($resource->xpath('//y:team') as $teamXml) {
+            YahooFantasyService::addXmlNamespace($teamXml);
+            $playersXml = $teamXml->xpath('./y:roster/y:players/y:player');
+            
+            $team = YahooFantasyService::jsonToArray($teamXml);
+            $team['roster']['players'] = YahooFantasyService::jsonToArray($playersXml);
+            $teams[] = new TeamResource($team);            
         }
         return $teams;      
     }

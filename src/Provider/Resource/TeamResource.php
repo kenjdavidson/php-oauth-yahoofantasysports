@@ -36,16 +36,14 @@ class TeamResource extends YahooFantasyResource {
     
     /**
      * Gets the league key from team key.  The team key is in format 
-     * ###.#.#####.#.###; where the league key is the first three 
+     * ###.l.#####.t.###; where the league key is the first three 
      * digits, ###.#.#####.
      */
-    public function parseLeagueKey() {
-        if (preg_match('/(\d+\.\w*.\d+)\..*/', $this->get('team_key'), $matches) == 1) {
+    public function getLeagueKey() {
+        if (preg_match('/(\d+).+/', $this->get('team_key'), $matches) == 1) {
             return $matches[1];
         } else {
             throw new Exception('Unable to parse team_key, league_key not found.');
         }
     }
-   
-    
 }

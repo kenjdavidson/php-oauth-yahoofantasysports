@@ -137,16 +137,5 @@ class YahooFantasyProvider extends AbstractProvider {
         $guid = $token->getResourceOwnerId();            
         return 'https://social.yahooapis.com/v1/user/'.$guid.'/profile?format=json';
     }
-
-    /**
-     * Used to make a full Resource request through the YahooFatnasy provider.  By 
-     * passing in a FantasyResource Class object, the YahooFantasy provider
-     * makes an authenticated request and returns the resource based on the
-     * request provided.
-     * 
-     * @param type $resource
-     */
-    public function getResource($resource) {
-        
-    }
+    
 }
