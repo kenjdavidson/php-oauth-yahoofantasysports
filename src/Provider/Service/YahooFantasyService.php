@@ -67,7 +67,7 @@ class YahooFantasyService {
     const USERS_URI = array(
         'games'      =>  '/users;use_login=1/games%s',
         'leagues'    =>  '/users;use_login=1/games%s/leagues;out=standings,scoreboard',
-        'teams'      =>  '/users;use_login=1/games%s/leagues/teams;out=standings,roster'         
+        'teams'      =>  '/users;use_login=1/games%s/leagues/teams;out=standings,roster,players'         
     );   
     
     /**
