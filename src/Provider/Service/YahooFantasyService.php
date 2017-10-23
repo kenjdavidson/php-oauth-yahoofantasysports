@@ -259,6 +259,12 @@ class YahooFantasyService {
             $league = YahooFantasyService::jsonToArray($leagueXml);
             $league['standings'] = YahooFantasyService::jsonToArray($standingsXml);
             $league['scoreboard'] = YahoofantasyService::jsonToArray($scoreboardXml);
+            
+            // Workaround for xml to array for scoreboard teams                  
+            for ($i = 0; $i < count($league['scoreboard']); $i++) {
+                $league['scoreboard'][$i]['teams'] = $league['scoreboard'][$i]['teams']['team'];
+            }
+            
             $leagues[] = new LeagueResource($league);
         }
         return $leagues;
