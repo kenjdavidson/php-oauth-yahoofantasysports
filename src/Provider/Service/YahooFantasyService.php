@@ -267,10 +267,11 @@ class YahooFantasyService {
             
             // Workaround for xml to array for scoreboard teams                  
             for ($i = 0; $i < count($league['scoreboard']); $i++) {
-                $league['scoreboard'][$i]['teams'] = array(
-                    $allTeams[$league['scoreboard'][$i]['teams']['team'][0]['team_id']],
-                    $allTeams[$league['scoreboard'][$i]['teams']['team'][1]['team_id']]
-                );
+                $home = array_merge($allTeams[$league['scoreboard'][$i]['teams']['team'][0]['team_id']],
+                        $league['scoreboard'][$i]['teams']['team'][0]);
+                $away = array_merge($allTeams[$league['scoreboard'][$i]['teams']['team'][1]['team_id']],
+                        $league['scoreboard'][$i]['teams']['team'][1]);
+                $league['scoreboard'][$i]['teams'] = array($home, $away);
             }
             
             $leagues[] = new LeagueResource($league);
