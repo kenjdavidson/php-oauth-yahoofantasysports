@@ -64,7 +64,7 @@ class UserResource extends YahooFantasyResource {
      * @return string
      */
     public function getProfileURL() {
-        return $this->data['profile']['uri'];
+        return $this->data['profile']['profileUrl'];
     }
     
     /**
