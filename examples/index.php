@@ -65,7 +65,8 @@ function displayAuthorizationUrl($authUrl) {
     <div>
         <h1>Yahoo Fantasy Provider</h1>
         <p>
-            Create a config.php file in the examples folder with the following
+            Create a config.php file in the examples folder with the following.  Note - that 'token' should only 
+            if you've completed the authorization process and have a token available, otherwise it should be undefined.
             format:
         <pre>
 $consumer = array(
@@ -76,7 +77,7 @@ $consumer = array(
 
 return array(
     'consumer'  => $consumer,
-    'token' => ''
+    'token' => '' // Only populate if you've received an auth token and wish to have it refreshed
 ); 
         </pre>
         </p>
