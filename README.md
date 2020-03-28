@@ -31,9 +31,6 @@ The following are required:
 
 Examples and Tests (todo) are available for a number of resources.
 
-TODO - actually learn how to write PHP tests
-TODO - update with docker image for hosting tests
-
 ### Examples
 
 Currently the examples are physical pages that need to be manually loaded and validated.  This is a painful process but I didn't have much experience with PHP at the time and hadn't gotten around to writing tests.  I'm thinking of coming back to this project to get a little more experience so actual tests may be incoming.
@@ -46,7 +43,7 @@ Currently the examples are physical pages that need to be manually loaded and va
 /teams.php - Displays teams JSON
 ```
 
-### Tests
+### Testing
 
 TODO - actually learn how to write PHP tests
 
